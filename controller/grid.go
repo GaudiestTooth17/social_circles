@@ -2,9 +2,12 @@ package controller
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/GaudiestTooth17/social_circles_go/model"
 )
+
+var seed int64 = int64(time.Now().UnixNano())
 
 func makeAgentReaches(configs []model.ReachConfig) []model.ReachType {
 	r := rand.New(rand.NewSource(seed))

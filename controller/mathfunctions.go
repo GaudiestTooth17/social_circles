@@ -1,10 +1,14 @@
 package controller
 
-import "math"
+import (
+	"math"
 
-func distanceFrom(a, b Coordinate) int {
-	x := float64(abs(a.x - b.x))
-	y := float64(abs(a.y - b.y))
+	"github.com/GaudiestTooth17/social_circles_go/model"
+)
+
+func distanceFrom(a, b model.Coordinate) int {
+	x := float64(abs(a.X - b.X))
+	y := float64(abs(a.Y - b.Y))
 	distance := int(math.Sqrt(math.Pow(x, 2) + math.Pow(y, 2)))
 	return distance
 }
