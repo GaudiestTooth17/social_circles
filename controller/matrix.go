@@ -11,7 +11,13 @@ import (
 
 type void struct{}
 
-func makeAdjacencyMatrix(grid [][]model.ReachType, noIsolates bool) [][]uint8 {
+// Graph holds both an adjacency matrix and map of id to location on the agent grid
+type Graph struct {
+	adjacencies    [][]uint8
+	idToCoordinate map[int]model.Coordinate
+}
+
+func makeAdjacencyMatrix(grid [][]model.ReachType, noIsolates bool) Graph {
 	// initialize neighbors with the agents that can reach each other
 	neighbors := make(map[model.Coordinate]map[model.Coordinate]void)
 	for i := 0; i < len(grid); i++ {
@@ -35,9 +41,11 @@ func makeAdjacencyMatrix(grid [][]model.ReachType, noIsolates bool) [][]uint8 {
 
 	// create a mapping of agent location to ID
 	agentToID := make(map[model.Coordinate]int)
+	idToCoordinate := make(map[int]model.Coordinate)
 	currentID := 0
 	for agent := range neighbors {
 		agentToID[agent] = currentID
+		idToCoordinate[currentID] = agent
 		currentID++
 	}
 
@@ -55,7 +63,7 @@ func makeAdjacencyMatrix(grid [][]model.ReachType, noIsolates bool) [][]uint8 {
 		}
 	}
 
-	return adjacencyMatrix
+	return Graph{adjacencies: adjacencyMatrix, idToCoordinate: idToCoordinate}
 }
 
 // searchForNeighbors creates a set of the coordinates of every agent within mutual range of
@@ -107,19 +115,35 @@ func FastSaveMatrix(networkName string, matrix [][]uint8) {
 
 // SaveAdjacencyList creates a file with the number of nodes and then a list of
 // edges separated by newlines
-func SaveAdjacencyList(networkName string, matrix [][]uint8) {
+func SaveAdjacencyList(networkName string, graph Graph, includeCoordinates bool) {
 	outFile, err := os.Create(networkName + ".txt")
 	if err != nil {
 		panic(err)
 	}
 	defer outFile.Close()
 
-	fmt.Fprintf(outFile, "%d\n", len(matrix))
-	for i, row := range matrix {
+	// if we are including coordinates, then they will tell us all the nodes that need to be
+	// included and there is no need to print it at the top of the file
+	if !includeCoordinates {
+		fmt.Fprintf(outFile, "%d\n", len(graph.adjacencies))
+	}
+	for i, row := range graph.adjacencies {
 		for j, value := range row {
 			if value > 0 {
 				fmt.Fprintf(outFile, "%d %d\n", i, j)
 			}
 		}
+	}
+
+	// only continue if we are supposed to write out where the agents were on the grid
+	if !includeCoordinates {
+		return
+	}
+
+	// write a blank line to signify the end of the edge list and beginning of
+	// the coordinate list
+	fmt.Fprintf(outFile, "\n")
+	for id, coordinate := range graph.idToCoordinate {
+		fmt.Fprintf(outFile, "%d %d %d\n", id, coordinate.X, coordinate.Y)
 	}
 }

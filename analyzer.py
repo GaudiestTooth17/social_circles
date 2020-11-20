@@ -79,13 +79,11 @@ def show_deg_dist_from_matrix(matrix: np.ndarray, title, *, color='b', display=F
     plt.clf()
 
 
-def make_node_to_degree(adj_mat) -> Dict[int, int]:
-    node_to_degree = {}
+def make_node_to_degree(adj_mat) -> List[int]:
+    node_to_degree = [0 for _ in range(adj_mat.shape[0])]
     for i in range(adj_mat.shape[0]):
         for j in range(adj_mat.shape[1]):
             if adj_mat[i][j] > 0:
-                if i not in node_to_degree:
-                    node_to_degree[i] = 0
                 node_to_degree[i] += 1
     return node_to_degree
 
@@ -142,7 +140,7 @@ def analyze_graph(adj_matrix, name) -> None:
     print(f'Edge density: {edge_density}')
     print(f'Degree assortativity coefficient: {dac}')
     show_clustering_coefficent_dist(clustering_coefficients, node_to_degree)
-    print(f'length of components: {[len(comp) for comp in components]}')
+    print(f'size of components: {[len(comp) for comp in components]}')
     show_deg_dist_from_matrix(adj_mat, name, display=True)
 
 

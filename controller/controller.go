@@ -16,7 +16,7 @@ type NetworkConfig struct {
 }
 
 // NewAdjacencyMatrix creates a new adjacency matrix using the given configuration
-func NewAdjacencyMatrix(configuration NetworkConfig) [][]uint8 {
+func NewAdjacencyMatrix(configuration NetworkConfig) Graph {
 	reachConfigs := configuration.makeReachConfigSlice()
 	reaches := makeAgentReaches(reachConfigs)
 	agentGrid := makeGridRandomUniform(reaches, configuration.GridSize)
