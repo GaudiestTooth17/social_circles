@@ -1,30 +1,17 @@
+#!/usr/bin/python3
+
 import matplotlib.pyplot as plt
 import collections
 import networkx as nx
 import numpy as np
 import sys
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple, Optional
 
 
-def read_adj_list(fileName) -> np.ndarray:
-    """
-    This reads in the data from half a symmetric matrix and mirrors it.
-    If the whole matrix is present in the file, that won't cause problems.
-    This cannot read unsymmetric matrices.
-    """
-    with open(fileName, 'r') as f:
-        lines = f.readlines()
-    shape = (int(lines[0][:-1]), int(lines[0][:-1]))
-    lines = tuple(line[:-1] for line in lines[1:])
-    matrix = np.zeros(shape, dtype=np.uint8)
-    for line in lines:
-        coord = line.split(' ')
-        matrix[int(coord[0]), int(coord[1])] = 1
-        matrix[int(coord[1]), int(coord[0])] = 1
-    return matrix
+Layout = Dict[int, Tuple[float, float]]
 
 
-def alt_read_adj_list(fileName) -> np.ndarray:
+def read_file(fileName) -> Tuple[np.ndarray, Optional[Layout]]:
     with open(fileName, 'r') as f:
         line = f.readline()
         shape = (int(line[:-1]), int(line[:-1]))
@@ -38,7 +25,11 @@ def alt_read_adj_list(fileName) -> np.ndarray:
             matrix[int(coord[1]), int(coord[0])] = 1
             line = f.readline()[:-1]
             i += 1
-    return matrix
+
+        rest_of_lines = map(lambda s: s.split(' '), f.readlines())
+        layout = {int(line[0]): (float(line[1]), float(line[2]))
+                  for line in rest_of_lines} if len(rest_of_lines) > 0 else None
+    return matrix, layout
 
 
 def show_deg_dist_from_matrix(matrix: np.ndarray, title, *, color='b', display=False, save=False):
@@ -69,9 +60,8 @@ def show_deg_dist_from_matrix(matrix: np.ndarray, title, *, color='b', display=F
 
     if display:
         plt.show()
-        # print(title + ' displayed')
     if save:
-        plt.savefig(title)
+        # plt.savefig(title[:-4] + '.png')  # This line just saves a blank pic instead of the plot.
         with open(title + '.csv', 'w') as file:
             for i in range(len(cnt)):
                 file.write(f'{deg[i]},{cnt[i]}\n')
@@ -129,21 +119,29 @@ def get_components(graph) -> List[Set]:
 
 # shows degree distribution, degree assortativity coefficient, clustering coefficient,
 # edge density
-def analyze_graph(adj_matrix, name) -> None:
-    G = nx.Graph(adj_matrix)
-    edge_density = calc_edge_density(adj_mat)
-    dac = nx.degree_assortativity_coefficient(G)
-    clustering_coefficients = nx.clustering(G)
-    node_to_degree = make_node_to_degree(adj_mat)
-    components = get_components(G)
+def analyze_graph(adj_matrix, name, layout) -> None:
+    # edge_density = calc_edge_density(adj_mat)
+    # dac = nx.degree_assortativity_coefficient(G)
+    # clustering_coefficients = nx.clustering(G)
+    # node_to_degree = make_node_to_degree(adj_mat)
+    # components = get_components(G)
 
-    print(f'Edge density: {edge_density}')
-    print(f'Degree assortativity coefficient: {dac}')
-    show_clustering_coefficent_dist(clustering_coefficients, node_to_degree)
-    print(f'size of components: {[len(comp) for comp in components]}')
-    show_deg_dist_from_matrix(adj_mat, name, display=True)
+    # print(f'Edge density: {edge_density}')
+    # print(f'Degree assortativity coefficient: {dac}')
+    # show_clustering_coefficent_dist(clustering_coefficients, node_to_degree)
+    # print(f'size of components: {[len(comp) for comp in components]}')
+    show_deg_dist_from_matrix(adj_mat, name, display=True, save=True)
+
+
+def visualize_graph(adj_mat: np.ndarray, layout: Optional[Layout]) -> None:
+    G = nx.Graph(adj_mat)
+    if layout is None:
+        nx.draw_kamada_kawai(G, node_size=100)
+    else:
+        nx.draw_networkx(G, pos=layout, node_size=100, with_labels=False)
+    plt.show()
 
 
 if __name__ == '__main__':
-    adj_mat = alt_read_adj_list(sys.argv[1])
-    analyze_graph(adj_mat, sys.argv[1])
+    adj_mat, layout = read_file(sys.argv[1])
+    analyze_graph(adj_mat, sys.argv[1][:-4], layout)
