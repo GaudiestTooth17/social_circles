@@ -17,6 +17,20 @@ type Graph struct {
 	idToCoordinate map[int]model.Coordinate
 }
 
+func (g *Graph) findMaxXandY() (maxX int, maxY int) {
+	maxX = 0
+	maxY = 0
+	for _, coordinate := range g.idToCoordinate {
+		if coordinate.X > maxX {
+			maxX = coordinate.X
+		}
+		if coordinate.Y > maxY {
+			maxY = coordinate.Y
+		}
+	}
+	return
+}
+
 func makeAdjacencyMatrix(grid [][]model.ReachType, noIsolates bool) Graph {
 	// initialize neighbors with the agents that can reach each other
 	neighbors := make(map[model.Coordinate]map[model.Coordinate]void)
@@ -124,9 +138,7 @@ func SaveAdjacencyList(networkName string, graph Graph, includeCoordinates bool)
 
 	// if we are including coordinates, then they will tell us all the nodes that need to be
 	// included and there is no need to print it at the top of the file
-	if !includeCoordinates {
-		fmt.Fprintf(outFile, "%d\n", len(graph.adjacencies))
-	}
+	fmt.Fprintf(outFile, "%d\n", len(graph.adjacencies))
 	for i, row := range graph.adjacencies {
 		for j, value := range row {
 			if value > 0 {
@@ -143,7 +155,15 @@ func SaveAdjacencyList(networkName string, graph Graph, includeCoordinates bool)
 	// write a blank line to signify the end of the edge list and beginning of
 	// the coordinate list
 	fmt.Fprintf(outFile, "\n")
+
+	maxX, maxY := graph.findMaxXandY()
+	fMaxX := float64(maxX)
+	fMaxY := float64(maxY)
+
 	for id, coordinate := range graph.idToCoordinate {
-		fmt.Fprintf(outFile, "%d %d %d\n", id, coordinate.X, coordinate.Y)
+		// normalize the x and y values to play nicely with graph-visualizer
+		x := 2*(float64(coordinate.X)/fMaxX) - 1
+		y := 2*(float64(coordinate.Y)/fMaxY) - 1
+		fmt.Fprintf(outFile, "%d %f %f\n", id, x, y)
 	}
 }

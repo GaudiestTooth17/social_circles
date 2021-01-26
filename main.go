@@ -11,14 +11,12 @@ func main() {
 	// view.MainMenu(emptyConfiguration)
 	configuration := controller.NetworkConfig{
 		ReachConfigs: map[string]model.ReachConfig{
-			"green":  model.ReachConfig{Quantity: 27710, Reach: 5},
-			"blue":   model.ReachConfig{Quantity: 5542, Reach: 10},
-			"purple": model.ReachConfig{Quantity: 3695, Reach: 15},
+			"green": model.ReachConfig{Quantity: 500, Reach: 5},
 		},
-		GridSize:    1223,
+		GridSize:    65,
 		NoIsolates:  false,
 		SaveCSV:     false,
-		NetworkName: "socnet2-w-coords.txt",
+		NetworkName: "spatial-network",
 	}
 	graph := controller.NewAdjacencyMatrix(configuration)
 	controller.SaveAdjacencyList(configuration.NetworkName, graph, true)
